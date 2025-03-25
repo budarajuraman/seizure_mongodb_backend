@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-const mongoURI = 'mongodb+srv://rahulraman:Xm0Q4HZmOzqOMgfq@myatlasclusteredu.eadha.mongodb.net/?retryWrites=true&w=majority&appName=myAtlasClusterEDU';
+const mongoURI = 'mongodb+srv://ramanrahul114:s60EMerpwCcQPJKk@cluster0.4uijx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const requestSchema = new mongoose.Schema({
