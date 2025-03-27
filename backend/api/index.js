@@ -37,6 +37,7 @@ const medicationSchema = new mongoose.Schema({
 const Medication = mongoose.model("Medication", medicationSchema);
 
 
+
 // ✅ Seizure Log Route
 app.post('/log', async (req, res) => {
     try {
@@ -76,7 +77,6 @@ app.post('/log', async (req, res) => {
     }
 });
 
-
 // ✅ New Route to Add an Appointment
 app.post('/appointment', async (req, res) => {
     try {
@@ -104,7 +104,6 @@ app.post('/appointment', async (req, res) => {
         res.status(500).send('Error: ' + error.message);
     }
 });
-
 
 // ✅ New Route to Add a Medication
 app.post('/medication', async (req, res) => {
@@ -134,7 +133,44 @@ app.post('/medication', async (req, res) => {
     }
 });
 
+// ✅ Seizure Aggregation Route
+app.get('/seizure-count', async (req, res) => {
+    try {
+        const now = new Date();
+
+        const startOfDay = new Date(now);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        const dailyCount = await SeizureLog.countDocuments({
+            timestamp: { $gte: startOfDay, $lte: now }
+        });
+
+        const weeklyCount = await SeizureLog.countDocuments({
+            timestamp: { $gte: startOfWeek, $lte: now }
+        });
+
+        const monthlyCount = await SeizureLog.countDocuments({
+            timestamp: { $gte: startOfMonth, $lte: now }
+        });
+
+        res.json({
+            daily: dailyCount,
+            weekly: weeklyCount,
+            monthly: monthlyCount
+        });
+
+    } catch (error) {
+        console.error('❌ Error in aggregation:', error);
+        res.status(500).send('Error: ' + error.message);
+    }
+});
 
 // ✅ Start server
 const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
