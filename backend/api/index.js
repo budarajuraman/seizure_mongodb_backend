@@ -133,36 +133,16 @@ app.post('/medication', async (req, res) => {
     }
 });
 
-// ✅ Seizure Aggregation Route
 app.get('/seizure-count', async (req, res) => {
     try {
-        const now = new Date();
-
-        const startOfDay = new Date(now);
-        startOfDay.setHours(0, 0, 0, 0);
-
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        const dailyCount = await SeizureLog.countDocuments({
-            timestamp: { $gte: startOfDay, $lte: now }
-        });
-
-        const weeklyCount = await SeizureLog.countDocuments({
-            timestamp: { $gte: startOfWeek, $lte: now }
-        });
-
-        const monthlyCount = await SeizureLog.countDocuments({
-            timestamp: { $gte: startOfMonth, $lte: now }
-        });
+        const daily = [2, 5, 0, 8, 3, 0, 7];      
+        const weekly = [20, 35, 15, 40];          
+        const monthly = [120, 130, 0, 140, 0, 160, 0, 180, 0, 200, 0, 220];  // Array of monthly counts
 
         res.json({
-            daily: dailyCount,
-            weekly: weeklyCount,
-            monthly: monthlyCount
+            daily,
+            weekly,
+            monthly
         });
 
     } catch (error) {
