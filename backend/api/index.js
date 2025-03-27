@@ -133,18 +133,26 @@ app.post('/medication', async (req, res) => {
     }
 });
 
-app.get('/seizure-count', async (req, res) => {
-    try {
-        const daily = [2, 5, 0, 8, 3, 0, 7];      
-        const weekly = [20, 35, 15, 40];          
-        const monthly = [120, 130, 0, 140, 0, 160, 0, 180, 0, 200, 0, 220];  // Array of monthly counts
+const ALL_WEEKDAYS = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+];
 
-        res.json({
-            daily,
-            weekly,
-            monthly
+app.get('/seizure-count', async (req, res) => {
+    
+    try {
+        const seizures = await collection.find({ seizure_detected: true }).toArray();
+
+        const weekdayCount = Object.fromEntries(ALL_WEEKDAYS.map(day => [day, 0]));
+
+        seizures.forEach(doc => {
+            const timestamp = new Date(doc.timestamp);
+            const weekday = timestamp.toLocaleString('en-US', { weekday: 'long' });
+            if (weekdayCount[weekday] !== undefined) {
+                weekdayCount[weekday]++;
+            }
         });
 
+        res.json({ weekdayCount });
     } catch (error) {
         console.error('❌ Error in aggregation:', error);
         res.status(500).send('Error: ' + error.message);
