@@ -138,26 +138,34 @@ const ALL_WEEKDAYS = [
 ];
 
 app.get('/seizure-count', async (req, res) => {
-    
     try {
-        const seizures = await collection.find({ seizure_detected: true }).toArray();
+        console.log('🔍 Fetching Seizure Count');
 
+        // Fetch only seizure logs where seizure_detected is true
+        const seizures = await SeizureLog.find({ seizure_detected: true });
+
+        // Initialize weekday count with all weekdays set to 0
         const weekdayCount = Object.fromEntries(ALL_WEEKDAYS.map(day => [day, 0]));
 
+        // Iterate over the seizure logs and count occurrences by weekday
         seizures.forEach(doc => {
             const timestamp = new Date(doc.timestamp);
             const weekday = timestamp.toLocaleString('en-US', { weekday: 'long' });
+
             if (weekdayCount[weekday] !== undefined) {
                 weekdayCount[weekday]++;
             }
         });
 
+        console.log('✅ Seizure Count:', weekdayCount);
         res.json({ weekdayCount });
+
     } catch (error) {
-        console.error('❌ Error in aggregation:', error);
+        console.error('❌ Error fetching seizure count:', error);
         res.status(500).send('Error: ' + error.message);
     }
 });
+
 
 // ✅ Start server
 const PORT = 3000;
