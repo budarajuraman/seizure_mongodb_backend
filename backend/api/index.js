@@ -17,7 +17,7 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
 // ✅ MongoDB Schemas and Models
 const seizureSchema = new mongoose.Schema({
     seizure_detected: { type: Boolean, required: true },
-    seizure_probability: { type: Number, required: true },
+    predicted_label: { type: String, required: true },
     timestamp: { type: Date, required: true }
 });
 const SeizureLog = mongoose.model('SeizureLog', seizureSchema);
@@ -36,6 +36,12 @@ const medicationSchema = new mongoose.Schema({
 });
 const Medication = mongoose.model("Medication", medicationSchema);
 
+const SeizureReadingSchema = new mongoose.Schema({
+    seizure_voltage: { type: Number, required: true },
+    timestamp: { type: Date, default: Date.now }
+  });
+
+const SeizureRead = mongoose.model("SeizureRead", SeizureReadingSchema);
 
 
 // ✅ Seizure Log Route
@@ -43,11 +49,11 @@ app.post('/log', async (req, res) => {
     try {
         console.log('📩 Received Payload:', req.body);
 
-        let { seizure_detected, seizure_probability, timestamp } = req.body;
+        let { seizure_detected, predicted_label, timestamp } = req.body;
 
         if (
             typeof seizure_detected !== 'boolean' ||
-            typeof seizure_probability !== 'number' ||
+            typeof predicted_label !== 'string' ||
             !timestamp
         ) {
             console.log('❌ Invalid data format:', req.body);
@@ -63,7 +69,7 @@ app.post('/log', async (req, res) => {
 
         const log = new SeizureLog({
             seizure_detected,
-            seizure_probability,
+            predicted_label,
             timestamp: parsedTimestamp
         });
 
@@ -75,6 +81,32 @@ app.post('/log', async (req, res) => {
         console.error('❌ Error saving data:', error);
         res.status(500).send('Error: ' + error.message);
     }
+});
+
+app.post('/seizureRead', async (req, res) => {
+    try {
+    const { seizure_voltage, timestamp } = req.body;
+
+    if (!seizure_voltage || !timestamp) {
+      return res.status(400).json({ message: 'Seizure voltage and timestamp are required' });
+    }
+
+    const seizure = new SeizureRead({
+      seizure_voltage,
+      timestamp
+    });
+
+
+    await seizure.save();
+
+    res.status(201).json({
+      message: 'Seizure data stored successfully',
+      data: seizure
+    });
+  } catch (err) {
+    console.error("Error storing seizure data:", err);
+    res.status(500).json({ message: 'Error storing seizure data', error: err });
+  }
 });
 
 // ✅ New Route to Add an Appointment
